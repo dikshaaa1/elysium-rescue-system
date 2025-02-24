@@ -1,0 +1,21 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "index.js",
+            "use": "@vercel/node"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "index.js"
+        }
+    ],
+    "env": {
+        "MONGODB_URI": "mongodb+srv://admin-Vishal:mobilea1@learnstream.mw3jrr3.mongodb.net/Elysium-RescueSystem?retryWrites=true&w=majority&appName=LearnStream",
+        "SOSMODE": "static",
+        "TWITTERMODE": "static",
+        "PORT": "3000"
+    }
+}

@@ -1,0 +1,497 @@
+--- Start of business_discovery.py ---
+from defines import getCreds, makeApiCall
+
+def getAccountInfo( params ) :
+	""" Get info on a users account
+	
+	API Endpoint:
+		https://graph.facebook.com/{graph-api-version}/{ig-user-id}?fields=business_discovery.username({ig-username}){username,website,name,ig_id,id,profile_picture_url,biography,follows_count,followers_count,media_count}&access_token={access-token}
+
+	Returns:
+		object: data from the endpoint
+
+	"""
+
+	endpointParams = dict() # parameter to send to the endpoint
+	endpointParams['fields'] = 'business_discovery.username(' + params['ig_username'] + '){username,website,name,ig_id,id,profile_picture_url,biography,follows_count,followers_count,media_count}' # string of fields to get back with the request for the account
+	endpointParams['access_token'] = params['access_token'] # access token
+
+	url = params['endpoint_base'] + params['instagram_account_id'] # endpoint url
+
+	return makeApiCall( url, endpointParams, params['debug'] ) # make the api call
+
+params = getCreds() # get creds
+params['debug'] = 'no' # set debug
+response = getAccountInfo( params ) # hit the api for some data!
+
+print("\n---- ACCOUNT INFO -----\n") # display latest post info
+print("username:") # label
+print(response['json_data']['business_discovery']['username']) # display username
+print("\nwebsite:") # label
+print(response['json_data']['business_discovery']['website']) # display users website
+print("\nnumber of posts:") # label
+print(response['json_data']['business_discovery']['media_count']) # display number of posts user has made
+print("\nfollowers:") # label
+print(response['json_data']['business_discovery']['followers_count']) # display number of followers the user has
+print("\nfollowing:") # label
+print(response['json_data']['business_discovery']['follows_count']) # display number of people the user follows
+print("\nprofile picture url:") # label
+print(response['json_data']['business_discovery']['profile_picture_url']) # display profile picutre url
+print("\nbiography:") # label
+print(response['json_data']['business_discovery']['biography']) # display users about section
+--- End of business_discovery.py ---
+
+--- Start of Comb.py ---
+import os
+
+# Directory containing Python scripts
+scripts_folder = 'D:\\Codes\\HACKATHON PROJECTS\\Elysium-RescueSystem\\Instagram'  # Change this to your folder path
+output_file = 'combined_scripts.txt'
+
+# Open the output file in write mode
+with open(output_file, 'w') as outfile:
+    # Iterate through each file in the folder
+    for filename in os.listdir(scripts_folder):
+        if filename.endswith('.py'):
+            filepath = os.path.join(scripts_folder, filename)
+            
+            # Write the filename at the top of the file's content
+            outfile.write(f"--- Start of {filename} ---\n")
+            
+            # Open the python file and write its content
+            with open(filepath, 'r') as infile:
+                for line in infile:
+                    outfile.write(line)
+            
+            # Write a separator after the content of each script
+            outfile.write(f"\n--- End of {filename} ---\n\n")
+
+print(f"Combined all scripts into {output_file}")
+
+--- End of Comb.py ---
+
+--- Start of debug_access_token.py ---
+from defines import getCreds, makeApiCall
+import datetime
+
+def debugAccessToken( params ) :
+	""" Get info on an access token 
+	
+	API Endpoint:
+		https://graph.facebook.com/debug_token?input_token={input-token}&access_token={valid-access-token}
+
+	Returns:
+		object: data from the endpoint
+
+	"""
+
+	endpointParams = dict() # parameter to send to the endpoint
+	endpointParams['input_token'] = params['access_token'] # input token is the access token
+	endpointParams['access_token'] = params['access_token'] # access token to get debug info on
+
+	url = params['graph_domain'] + '/debug_token' # endpoint url
+
+	return makeApiCall( url, endpointParams, params['debug'] ) # make the api call
+
+params = getCreds() # get creds
+params['debug'] = 'yes' # set debug
+response = debugAccessToken( params ) # hit the api for some data!
+
+print ("\nData Access Expires at: ") # label
+print (datetime.datetime.fromtimestamp( response['json_data']['data']['data_access_expires_at'] )) # display out when the token expires
+
+print ("\nToken Expires at: ") # label
+print (datetime.datetime.fromtimestamp( response['json_data']['data']['expires_at'] )) # display out when the token expires
+--- End of debug_access_token.py ---
+
+--- Start of defines.py ---
+import requests
+import json
+
+def getCreds() :
+	""" Get creds required for use in the applications
+	
+	Returns:
+		dictonary: credentials needed globally
+
+	"""
+
+	creds = dict() # dictionary to hold everything
+	creds['access_token'] = 'ACCESS-TOKEN' # access token for use with all api calls
+	creds['client_id'] = 'FB-APP-CLIENT-ID' # client id from facebook app IG Graph API Test
+	creds['client_secret'] = 'FB-APP-CLIENT-SECRET' # client secret from facebook app
+	creds['graph_domain'] = 'https://graph.facebook.com/' # base domain for api calls
+	creds['graph_version'] = 'v6.0' # version of the api we are hitting
+	creds['endpoint_base'] = creds['graph_domain'] + creds['graph_version'] + '/' # base endpoint with domain and version
+	creds['debug'] = 'no' # debug mode for api call
+	creds['page_id'] = 'FB-PAGE-ID' # users page id
+	creds['instagram_account_id'] = 'INSTAGRAM-BUSINESS-ACCOUNT-ID' # users instagram account id
+	creds['ig_username'] = 'IG-USERNAME' # ig username
+
+	return creds
+
+def makeApiCall( url, endpointParams, debug = 'no' ) :
+	""" Request data from endpoint with params
+	
+	Args:
+		url: string of the url endpoint to make request from
+		endpointParams: dictionary keyed by the names of the url parameters
+
+
+	Returns:
+		object: data from the endpoint
+
+	"""
+
+	data = requests.get( url, endpointParams ) # make get request
+
+	response = dict() # hold response info
+	response['url'] = url # url we are hitting
+	response['endpoint_params'] = endpointParams #parameters for the endpoint
+	response['endpoint_params_pretty'] = json.dumps( endpointParams, indent = 4 ) # pretty print for cli
+	response['json_data'] = json.loads( data.content ) # response data from the api
+	response['json_data_pretty'] = json.dumps( response['json_data'], indent = 4 ) # pretty print for cli
+
+	if ( 'yes' == debug ) : # display out response info
+		displayApiCallData( response ) # display response
+
+	return response # get and return content
+
+def displayApiCallData( response ) :
+	""" Print out to cli response from api call """
+
+	print("\nURL: ") # title
+	print(response['url']) # display url hit
+	print("\nEndpoint Params: ") # title
+	print(response['endpoint_params_pretty']) # display params passed to the endpoint
+	print("\nResponse: ") # title
+	print(response['json_data_pretty']) # make look pretty for cli
+--- End of defines.py ---
+
+--- Start of defines_py3.py ---
+import requests
+import json
+
+def getCreds() :
+	""" Get creds required for use in the applications
+	
+	Returns:
+		dictonary: credentials needed globally
+
+	"""
+
+	creds = dict() # dictionary to hold everything
+	creds['access_token'] = 'ACCESS-TOKEN' # access token for use with all api calls
+	creds['graph_domain'] = 'https://graph.facebook.com/' # base domain for api calls
+	creds['graph_version'] = 'v6.0' # version of the api we are hitting
+	creds['endpoint_base'] = creds['graph_domain'] + creds['graph_version'] + '/' # base endpoint with domain and version
+	creds['instagram_account_id'] = 'INSTAGRAM-BUSINESS-ACCOUNT-ID' # users instagram account id
+
+	return creds
+
+def makeApiCall( url, endpointParams, type ) :
+	""" Request data from endpoint with params
+	
+	Args:
+		url: string of the url endpoint to make request from
+		endpointParams: dictionary keyed by the names of the url parameters
+
+
+	Returns:
+		object: data from the endpoint
+
+	"""
+
+	if type == 'POST' : # post request
+		data = requests.post( url, endpointParams )
+	else : # get request
+		data = requests.get( url, endpointParams )
+
+	response = dict() # hold response info
+	response['url'] = url # url we are hitting
+	response['endpoint_params'] = endpointParams #parameters for the endpoint
+	response['endpoint_params_pretty'] = json.dumps( endpointParams, indent = 4 ) # pretty print for cli
+	response['json_data'] = json.loads( data.content ) # response data from the api
+	response['json_data_pretty'] = json.dumps( response['json_data'], indent = 4 ) # pretty print for cli
+
+	return response # get and return content
+--- End of defines_py3.py ---
+
+--- Start of get_instagram_account.py ---
+from defines import getCreds, makeApiCall
+
+def getInstagramAccount( params ) :
+	""" Get instagram account
+	
+	API Endpoint:
+		https://graph.facebook.com/{graph-api-version}/{page-id}?access_token={your-access-token}&fields=instagram_business_account
+
+	Returns:
+		object: data from the endpoint
+
+	"""
+
+	endpointParams = dict() # parameter to send to the endpoint
+	endpointParams['access_token'] = params['access_token'] # tell facebook we want to exchange token
+	endpointParams['fields'] = 'instagram_business_account' # access token
+
+	url = params['endpoint_base'] + params['page_id'] # endpoint url
+
+	return makeApiCall( url, endpointParams, params['debug'] ) # make the api call
+
+params = getCreds() # get creds
+params['debug'] = 'no' # set debug
+response = getInstagramAccount( params ) # get debug info
+
+print("\n---- INSTAGRAM ACCOUNT INFO ----\n")
+print("Page Id:") # label
+print(response['json_data']['id']) # display the page id
+print("\nInstagram Business Account Id:") # label
+print(response['json_data']['instagram_business_account']['id']) #display the instagram account id
+--- End of get_instagram_account.py ---
+
+--- Start of get_long_lived_access_token.py ---
+from defines import getCreds, makeApiCall
+
+def getLongLivedAccessToken( params ) :
+	""" Get long lived access token
+	
+	API Endpoint:
+		https://graph.facebook.com/{graph-api-version}/oauth/access_token?grant_type=fb_exchange_token&client_id={app-id}&client_secret={app-secret}&fb_exchange_token={your-access-token}
+
+	Returns:
+		object: data from the endpoint
+
+	"""
+
+	endpointParams = dict() # parameter to send to the endpoint
+	endpointParams['grant_type'] = 'fb_exchange_token' # tell facebook we want to exchange token
+	endpointParams['client_id'] = params['client_id'] # client id from facebook app
+	endpointParams['client_secret'] = params['client_secret'] # client secret from facebook app
+	endpointParams['fb_exchange_token'] = params['access_token'] # access token to get exchange for a long lived token
+
+	url = params['endpoint_base'] + 'oauth/access_token' # endpoint url
+
+	return makeApiCall( url, endpointParams, params['debug'] ) # make the api call
+
+params = getCreds() # get creds
+params['debug'] = 'yes' # set debug
+response = getLongLivedAccessToken( params ) # hit the api for some data!
+
+print("\n ---- ACCESS TOKEN INFO ----\n") # section header
+print("Access Token:")  # label
+print(response['json_data']['access_token']) # display access token
+--- End of get_long_lived_access_token.py ---
+
+
+--- Start of hashtag_search.py ---
+from defines import getCreds, makeApiCall
+import sys
+
+def getHashtagInfo( params ) :
+	""" Get info on a hashtag
+	
+	API Endpoint:
+		https://graph.facebook.com/{graph-api-version}/ig_hashtag_search?user_id={user-id}&q={hashtag-name}&fields={fields}
+
+	Returns:
+		object: data from the endpoint
+
+	"""
+
+	endpointParams = dict() # parameter to send to the endpoint
+	endpointParams['user_id'] = params['instagram_account_id'] # user id making request
+	endpointParams['q'] = params['hashtag_name'] # hashtag name
+	endpointParams['fields'] = 'id,name' # fields to get back
+	endpointParams['access_token'] = params['access_token'] # access token
+
+	url = params['endpoint_base'] + 'ig_hashtag_search' # endpoint url
+
+	return makeApiCall( url, endpointParams, params['debug'] ) # make the api call
+
+def getHashtagMedia( params ) :
+	""" Get posts for a hashtag
+	
+	API Endpoints:
+		https://graph.facebook.com/{graph-api-version}/{ig-hashtag-id}/top_media?user_id={user-id}&fields={fields}
+		https://graph.facebook.com/{graph-api-version}/{ig-hashtag-id}/recent_media?user_id={user-id}&fields={fields}
+
+	Returns:
+		object: data from the endpoint
+
+	"""
+
+	endpointParams = dict() # parameter to send to the endpoint
+	endpointParams['user_id'] = params['instagram_account_id'] # user id making request
+	endpointParams['fields'] = 'id,children,caption,comment_count,like_count,media_type,media_url,permalink' # fields to get back
+	endpointParams['access_token'] = params['access_token'] # access token
+
+	url = params['endpoint_base'] + params['hashtag_id'] + '/' + params['type'] # endpoint url
+
+	return makeApiCall( url, endpointParams, params['debug'] ) # make the api call
+
+def getRecentlySearchedHashtags( params ) :
+	""" Get hashtags a user has recently search for
+	
+	API Endpoints:
+		https://graph.facebook.com/{graph-api-version}/{ig-user-id}/recently_searched_hashtags?fields={fields}
+
+	Returns:
+		object: data from the endpoint
+
+	"""
+
+	endpointParams = dict() # parameter to send to the endpoint
+	endpointParams['fields'] = 'id,name' # fields to get back
+	endpointParams['access_token'] = params['access_token'] # access token
+
+	url = params['endpoint_base'] + params['instagram_account_id'] + '/' + 'recently_searched_hashtags' # endpoint url
+
+	return makeApiCall( url, endpointParams, params['debug'] ) # make the api call
+
+try : # try and get param from command line
+	hashtag = sys.argv[1] # hashtag to get info on
+except : # default to coding hashtag
+	hashtag = 'coding' # hashtag to get info on
+
+params = getCreds() # params for api call
+params['hashtag_name'] = hashtag # add on the hashtag we want to search for
+hashtagInfoResponse = getHashtagInfo( params ) # hit the api for some data!
+params['hashtag_id'] = hashtagInfoResponse['json_data']['data'][0]['id']; # store hashtag id
+
+print("\n\n\n\t\t\t >>>>>>>>>>>>>>>>>>>> HASHTAG INFO <<<<<<<<<<<<<<<<<<<<\n") # section heading
+print("\nHashtag: " + hashtag) # display hashtag
+print("Hashtag ID: " + params['hashtag_id']) # display hashtag id
+
+print("\n\n\n\t\t\t >>>>>>>>>>>>>>>>>>>> HASHTAG TOP MEDIA <<<<<<<<<<<<<<<<<<<<\n") # section heading
+params['type'] = 'top_media' # set call to get top media for hashtag
+hashtagTopMediaResponse = getHashtagMedia( params ) # hit the api for some data!
+
+for post in hashtagTopMediaResponse['json_data']['data'] : # loop over posts
+	print("\n\n---------- POST ----------\n") # post heading
+	print("Link to post:") # label
+	print(post['permalink']) # link to post
+	print("\nPost caption:") # label
+	print(post['caption']) # post caption
+	print("\nMedia type:") # label
+	print(post['media_type']) # type of media
+
+print("\n\n\n\t\t\t >>>>>>>>>>>>>>>>>>>> HASHTAG RECENT MEDIA <<<<<<<<<<<<<<<<<<<<\n") # section heading
+params['type'] = 'recent_media' # set call to get recent media for hashtag
+hashtagRecentMediaResponse = getHashtagMedia( params ) # hit the api for some data!
+
+for post in hashtagRecentMediaResponse['json_data']['data'] : # loop over posts
+	print("\n\n---------- POST ----------\n") # post heading
+	print("Link to post:") # label
+	print(post['permalink']) # link to post
+	print("\nPost caption:") # label
+	print(post['caption']) # post caption
+	print("\nMedia type:") # label
+	print(post['media_type']) # type of media
+
+print("\n\n\n\t\t\t >>>>>>>>>>>>>>>>>>>> USERS RECENTLY SEARCHED HASHTAGS <<<<<<<<<<<<<<<<<<<<\n") # section heading
+getRecentSearchResponse = getRecentlySearchedHashtags( params ) # hit the api for some data!
+
+for hashtag in getRecentSearchResponse['json_data']['data'] : # looop over hashtags
+	print("\n\n---------- SEARCHED HASHTAG ----------\n") # searched heading
+	print("\nHashtag: " + hashtag['name']) # display hashtag
+	print("Hashtag ID: " + hashtag['id']) # display hashtag id
+--- End of hashtag_search.py ---
+
+--- Start of insights.py ---
+from defines import getCreds, makeApiCall
+
+def getUserMedia( params ) :
+	""" Get users media
+	
+	API Endpoint:
+		https://graph.facebook.com/{graph-api-version}/{ig-user-id}/media?fields={fields}
+
+	Returns:
+		object: data from the endpoint
+
+	"""
+
+	endpointParams = dict() # parameter to send to the endpoint
+	endpointParams['fields'] = 'id,caption,media_type,media_url,permalink,thumbnail_url,timestamp,username' # fields to get back
+	endpointParams['access_token'] = params['access_token'] # access token
+
+	url = params['endpoint_base'] + params['instagram_account_id'] + '/media' # endpoint url
+
+	return makeApiCall( url, endpointParams, params['debug'] ) # make the api call
+
+def getMediaInsights( params ) :
+	""" Get insights for a specific media id
+	
+	API Endpoint:
+		https://graph.facebook.com/{graph-api-version}/{ig-media-id}/insights?metric={metric}
+
+	Returns:
+		object: data from the endpoint
+
+	"""
+	endpointParams = dict() # parameter to send to the endpoint
+	endpointParams['metric'] = params['metric'] # fields to get back
+	endpointParams['access_token'] = params['access_token'] # access token
+
+	url = params['endpoint_base'] + params['latest_media_id'] + '/insights' # endpoint url
+
+	return makeApiCall( url, endpointParams, params['debug'] ) # make the api call
+
+def getUserInsights( params ) :
+	""" Get insights for a users account
+	
+	API Endpoint:
+		https://graph.facebook.com/{graph-api-version}/{ig-user-id}/insights?metric={metric}&period={period}
+
+	Returns:
+		object: data from the endpoint
+
+	"""
+
+	endpointParams = dict() # parameter to send to the endpoint
+	endpointParams['metric'] = 'follower_count,impressions,profile_views,reach' # fields to get back
+	endpointParams['period'] = 'day' # period
+	endpointParams['access_token'] = params['access_token'] # access token
+
+	url = params['endpoint_base'] + params['instagram_account_id'] + '/insights' # endpoint url
+
+	return makeApiCall( url, endpointParams, params['debug'] ) # make the api call
+
+params = getCreds() # get creds
+response = getUserMedia( params ) # get users media from the api
+
+print("\n---- LATEST POST -----\n") # section header
+print("\tLink to post:") # link to post
+print("\t" + response['json_data']['data'][0]['permalink']) # link to post
+print("\n\tPost caption:") # post caption
+print("\t" + response['json_data']['data'][0]['caption']) # post caption
+print("\n\tMedia Type:") # type of media
+print("\t" + response['json_data']['data'][0]['media_type']) # type of media
+print("\n\tPosted at:") # when it was posted
+print("\t" + response['json_data']['data'][0]['timestamp']) # when it was posted
+
+params['latest_media_id'] = response['json_data']['data'][0]['id'] # store latest post id
+
+if 'VIDEO' == response['json_data']['data'][0]['media_type'] : # media is a video
+	params['metric'] = 'engagement,impressions,reach,saved,video_views'
+else : # media is an image
+	params['metric'] = 'engagement,impressions,reach,saved'
+
+response = getMediaInsights( params ) # get insights for a specific media id
+
+print("\n---- LATEST POST INSIGHTS -----\n") # section header
+
+for insight in response['json_data']['data'] : # loop over post insights
+	print("\t" + insight['title'] + " (" + insight['period'] + "): " + str( insight['values'][0]['value'] )) # display info
+
+response = getUserInsights( params ) # get insights for a user
+
+print("\n---- DAILY USER ACCOUNT INSIGHTS -----\n") # section header
+
+for insight in response['json_data']['data'] : # loop over user account insights
+	print("\t" + insight['title'] + " (" + insight['period'] + "): " + str( insight['values'][0]['value'] )) # display info
+
+	for value in insight['values'] : # loop over each value
+		print("\t\t" + value['end_time'] + ": " + str( value['value'] )) # print out counts for the date
+--- End of insights.py ---

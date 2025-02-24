@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Argus | Home</title>
+		<script
+			src="https://code.jquery.com/jquery-3.7.1.js"
+			integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+			crossorigin="anonymous"></script>
+		<link rel="stylesheet" href="/getStyles/getStyles.css" />
+		<script src="/getStyles/getStyles.js"></script>
+		<script src="/js/aos.js"></script>
+		<script src="/js/index.js"></script>
+		<meta name="getStyles" sm="" md="" lg="" xl="" xxl="" />
+		<link rel="apple-touch-icon" href="icons/apple-icon-180.png" />
+		<link rel="shortcut icon" href="/logo.png" type="image/x-icon">
+	</head>
+	<body class="relative">
+		<div
+			class="loader h-screen w-screen bg-red flex aic jcc fd-column txt-white fixed top-0 left-0 z-12">
+			<p class="txt-white fs-9xl" style="font-family: Pacifico">Argus</p>
+		</div>
+		<main class="h-screen w-screen overflow-hidden">
+			<div
+				id="home"
+				class="flex fd-column aic jcc h-screen p-lg gap-lg relative">
+				<img src="/img/ambulance.svg" alt="ambulance" class="maxh-4-10"/>
+				<h2 class="tal h3 lh-12-10">Empowering Safety, Instantly</h2>
+				<p class="tal w-full fw-200 h4">Wherever You Are</p>
+				<a
+					id="animateLeft"
+					class="bg-black w-56 h-56 txt-white round flex aic jcc absolute bottom-32 right-32">
+					<i class="bx bx-chevron-right fs-4xl"></i>
+				</a>
+			</div>
+			<div
+				id="join"
+				class="none fd-column aic jcc h-screen w-screen p-lg gap-sm">
+				<img src="/img/signup.svg" alt="SignUp Background" class="maxh-4-10"/>
+				<h2 class="tal h3 lh-12-10">
+					Join Us in Making a <span class="txt-red">Difference!</span>
+				</h2>
+				<p class="tal w-full fw-200 h4">
+					Together, Impact Our Community
+				</p>
+				<a
+					href="/userSignup"
+					class="bg-red w-full h-56 txt-white round-32 flex aic jcc">
+					SignUp for Argus
+				</a>
+				<a
+					href="/volunteerSignup"
+					class="border-1 solid border-red w-full h-56 txt-white round-32 flex aic jcc txt-red">
+					Become a Volunteer
+				</a>
+				<a
+					href="/serviceSignup"
+					class="border-1 solid border-red w-full h-56 txt-white round-32 flex aic jcc txt-red">
+					Contribute as Service
+				</a>
+				<p>
+					Already registered?
+					<a href="/login" class="txt-red">Login</a>
+				</p>
+			</div>
+		</main>
+	</body>
+</html>
